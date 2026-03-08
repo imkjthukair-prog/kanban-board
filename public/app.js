@@ -283,16 +283,18 @@ async function approveTask(taskId, priority) {
 
 async function rejectTask(taskId) {
     const task = allTasks.find(t => t.id === taskId);
+    console.log('Reject task called for:', taskId, task);
     
     showFeedbackModal(
         '❌ Reject Task',
         'Why are you rejecting this? Your feedback helps improve future suggestions.',
         true,
         async (reason) => {
+            console.log('Rejection callback executing with reason:', reason);
             const note = `✕ Rejected — Reason: ${reason}`;
             
             try {
-                await fetch(`${API_URL}/tasks/${taskId}`, {
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -300,6 +302,8 @@ async function rejectTask(taskId) {
                         note: note
                     })
                 });
+                
+                console.log('Server response:', response.status);
                 
                 const taskName = task?.name || 'Task';
                 showToast(
@@ -317,7 +321,9 @@ async function rejectTask(taskId) {
                 
                 await loadTasks();
                 await loadActivity();
+                console.log('Task rejected successfully, UI updated');
             } catch (error) {
+                console.error('Rejection error:', error);
                 showToast('Failed to reject task', 'error');
             }
         }
