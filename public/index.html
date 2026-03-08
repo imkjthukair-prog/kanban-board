@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board - Khaled's Workspace</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <div class="container">
+        <header>
+            <h1>💼 Khaled's Kanban Board</h1>
+            <div class="header-actions">
+                <button id="refresh-btn" class="btn btn-primary">🔄 Refresh Suggestions</button>
+                <button id="archive-btn" class="btn btn-secondary" onclick="openArchive()">📦 Archive</button>
+            </div>
+        </header>
+
+        <main class="board">
+            <!-- Suggested Column -->
+            <div class="column">
+                <div class="column-header suggested-header">
+                    <h2>💡 Suggested</h2>
+                    <span class="count" id="suggested-count">0</span>
+                </div>
+                <div class="cards" id="suggested-cards"></div>
+                <div class="empty-state" id="suggested-empty">
+                    <p>✨ No new suggestions</p>
+                    <button class="btn btn-small" onclick="refreshSuggestions()">Generate New</button>
+                </div>
+            </div>
+
+            <!-- Backlog Column -->
+            <div class="column">
+                <div class="column-header backlog-header">
+                    <h2>📋 Backlog</h2>
+                    <span class="count" id="backlog-count">0</span>
+                </div>
+                <div class="cards" id="backlog-cards"></div>
+                <div class="empty-state" id="backlog-empty" style="display: none;">
+                    <p>📭 No tasks in backlog</p>
+                </div>
+            </div>
+
+            <!-- Active Column -->
+            <div class="column">
+                <div class="column-header active-header">
+                    <h2>🔥 Active</h2>
+                    <span class="count" id="active-count">0</span>
+                </div>
+                <div class="cards" id="active-cards"></div>
+                <div class="empty-state" id="active-empty" style="display: none;">
+                    <p>⏸️ Nothing being worked on</p>
+                </div>
+            </div>
+
+            <!-- Done Column -->
+            <div class="column">
+                <div class="column-header done-header">
+                    <h2>✅ Done (This Week)</h2>
+                    <span class="count" id="done-count">0</span>
+                </div>
+                <div class="cards" id="done-cards"></div>
+                <div class="empty-state" id="done-empty" style="display: none;">
+                    <p>🎯 Nothing completed yet</p>
+                </div>
+                <div class="column-footer">
+                    <small>Auto-archives weekly</small>
+                </div>
+            </div>
+        </main>
+
+        <!-- Activity Log -->
+        <aside class="activity-panel">
+            <h3>📊 Activity Log</h3>
+            <div id="activity-log"></div>
+        </aside>
+    </div>
+
+    <!-- Archive Modal -->
+    <div id="archive-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📦 Archive</h2>
+                <button onclick="closeArchive()" class="btn-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="archive-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal" style="display: none;">
+        <div class="modal-content feedback-modal-content">
+            <div class="modal-header">
+                <h2 id="feedback-title"></h2>
+                <button class="btn-close" onclick="closeFeedbackModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="feedback-prompt" class="feedback-prompt"></p>
+                <textarea id="feedback-input" class="feedback-textarea" rows="5" placeholder="Type your feedback here..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
+                <button class="btn btn-primary" id="feedback-submit-btn">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
