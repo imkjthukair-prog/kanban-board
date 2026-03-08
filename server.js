@@ -46,6 +46,11 @@ async function logActivity(action, taskName, details = {}) {
 // Get all tasks
 app.get('/api/tasks', async (req, res) => {
   try {
+    // Prevent caching of task data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     const tasks = await readJSON(TASKS_FILE);
     res.json(tasks);
   } catch (error) {

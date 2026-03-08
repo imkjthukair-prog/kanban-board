@@ -67,7 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadTasks() {
     try {
-        const response = await fetch(`${API_URL}/tasks`);
+        // Add cache-busting parameter to prevent stale data
+        const response = await fetch(`${API_URL}/tasks?_=${Date.now()}`, {
+            cache: 'no-store'
+        });
         allTasks = await response.json();
         renderTasks();
     } catch (error) {
@@ -293,6 +296,13 @@ async function rejectTask(taskId) {
             console.log('Rejection callback executing with reason:', reason);
             const note = `✕ Rejected — Reason: ${reason}`;
             
+            // Immediately remove from DOM for instant feedback
+            const cardElement = document.querySelector(`[data-id="${taskId}"]`);
+            if (cardElement) {
+                cardElement.style.opacity = '0.5';
+                cardElement.style.pointerEvents = 'none';
+            }
+            
             try {
                 const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                     method: 'PATCH',
@@ -306,6 +316,21 @@ async function rejectTask(taskId) {
                 console.log('Server response:', response.status);
                 
                 const taskName = task?.name || 'Task';
+                
+                // Update local state immediately
+                const taskIndex = allTasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    allTasks[taskIndex].status = 'archived';
+                }
+                
+                // Remove card from DOM immediately
+                if (cardElement) {
+                    cardElement.remove();
+                }
+                
+                updateEmptyStates();
+                updateCounters();
+                
                 showToast(
                     `✕ ${taskName} rejected`,
                     'info',
@@ -324,6 +349,11 @@ async function rejectTask(taskId) {
                 console.log('Task rejected successfully, UI updated');
             } catch (error) {
                 console.error('Rejection error:', error);
+                // Restore card if error
+                if (cardElement) {
+                    cardElement.style.opacity = '1';
+                    cardElement.style.pointerEvents = 'auto';
+                }
                 showToast('Failed to reject task', 'error');
             }
         }
