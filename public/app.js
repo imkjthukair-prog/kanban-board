@@ -550,11 +550,13 @@ function showFeedbackModal(title, prompt, required = false, callback) {
             return;
         }
         
+        // Capture callback BEFORE closing modal (closeFeedbackModal nulls it)
+        const cb = feedbackCallback;
         closeFeedbackModal();
         
-        if (feedbackCallback) {
+        if (cb) {
             try {
-                await feedbackCallback(feedback);
+                await cb(feedback);
             } catch (error) {
                 console.error('Callback error:', error);
                 showToast('Error processing feedback', 'error');

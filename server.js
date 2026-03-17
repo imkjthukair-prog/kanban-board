@@ -11,12 +11,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Data file paths
+// Storage backend selection
+const USE_VERCEL_KV = process.env.KV_REST_API_URL ? true : false;
+let kv;
+
+if (USE_VERCEL_KV) {
+  const { createClient } = require('@vercel/kv');
+  kv = createClient({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+  });
+  console.log('✅ Using Vercel KV for persistent storage');
+} else {
+  console.log('⚠️  Using local file storage (Vercel KV not configured)');
+}
+
+// Data file paths (for local fallback)
 const TASKS_FILE = path.join(__dirname, 'data', 'tasks.json');
 const ACTIVITY_FILE = path.join(__dirname, 'data', 'activity.json');
 
-// Helper functions
+// Helper functions - dual backend support
 async function readJSON(filepath) {
+  if (USE_VERCEL_KV) {
+    const key = filepath.includes('tasks.json') ? 'tasks' : 'activity';
+    const data = await kv.get(key);
+    return data || [];
+  }
+  
+  // Local file fallback
   try {
     const data = await fs.readFile(filepath, 'utf8');
     return JSON.parse(data);
@@ -26,6 +48,13 @@ async function readJSON(filepath) {
 }
 
 async function writeJSON(filepath, data) {
+  if (USE_VERCEL_KV) {
+    const key = filepath.includes('tasks.json') ? 'tasks' : 'activity';
+    await kv.set(key, data);
+    return;
+  }
+  
+  // Local file fallback
   await fs.writeFile(filepath, JSON.stringify(data, null, 2));
 }
 
