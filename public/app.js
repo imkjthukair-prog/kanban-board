@@ -309,14 +309,8 @@ async function rejectTask(taskId) {
                     })
                 });
                 
-                // Update local state
-                const taskIndex = allTasks.findIndex(t => t.id === taskId);
-                if (taskIndex !== -1) {
-                    allTasks[taskIndex].status = 'archived';
-                }
-                
-                // Re-render everything to ensure clean state
-                renderTasks();
+                // Reload fresh data from server instead of trusting local state
+                await loadTasks();
                 await loadActivity();
                 
                 showToast(
