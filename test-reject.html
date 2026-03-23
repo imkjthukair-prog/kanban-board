@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Reject Flow</title>
+</head>
+<body>
+    <h1>Testing Reject Task Flow</h1>
+    <div id="results"></div>
+    <script>
+        const API_URL = '/api';
+        let allTasks = [];
+        
+        async function test() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Loading tasks...</p>';
+            
+            // Load tasks
+            const response = await fetch(`${API_URL}/tasks`);
+            allTasks = await response.json();
+            
+            const suggestedTasks = allTasks.filter(t => t.status === 'suggested');
+            results.innerHTML = `<p>Found ${suggestedTasks.length} suggested tasks</p>`;
+            
+            if (suggestedTasks.length > 0) {
+                const task = suggestedTasks[0];
+                results.innerHTML += `<p>Testing rejection on task: ${task.name} (${task.id})</p>`;
+                
+                // Simulate reject flow (without modal)
+                const taskId = task.id;
+                const reason = "Test rejection";
+                const note = `✕ Rejected — Reason: ${reason}`;
+                
+                // Before state
+                results.innerHTML += `<p>Before: task.status = ${allTasks.find(t => t.id === taskId)?.status}</p>`;
+                
+                // Archive on server
+                const patchRes = await fetch(`${API_URL}/tasks/${taskId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        status: 'archived',
+                        note: note
+                    })
+                });
+                const updatedTask = await patchRes.json();
+                results.innerHTML += `<p>Server response: status = ${updatedTask.status}</p>`;
+                
+                // Update local state
+                const taskIndex = allTasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    allTasks[taskIndex].status = 'archived';
+                }
+                
+                // After state
+                results.innerHTML += `<p>After local update: task.status = ${allTasks.find(t => t.id === taskId)?.status}</p>`;
+                
+                // Test filter
+                const filtered = allTasks.filter(t => t.status !== 'archived');
+                results.innerHTML += `<p>Filtered tasks (non-archived): ${filtered.length}</p>`;
+                results.innerHTML += `<p>Archived tasks: ${allTasks.filter(t => t.status === 'archived').length}</p>`;
+                
+                // Check if task still in suggested
+                const stillSuggested = allTasks.filter(t => t.status === 'suggested');
+                results.innerHTML += `<p>Remaining suggested tasks: ${stillSuggested.length}</p>`;
+            }
+        }
+        
+        test().catch(err => {
+            document.getElementById('results').innerHTML = `<p>Error: ${err.message}</p>`;
+        });
+    </script>
+</body>
+</html>

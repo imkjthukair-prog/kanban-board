@@ -286,12 +286,15 @@ async function approveTask(taskId, priority) {
 
 async function rejectTask(taskId) {
     const task = allTasks.find(t => t.id === taskId);
+    console.log('🔴 rejectTask called for ID:', taskId, 'Task:', task);
     
     showFeedbackModal(
         '❌ Reject Task',
         'Why are you rejecting this? Your feedback helps improve future suggestions.',
         true,
         async (reason) => {
+            alert('CALLBACK EXECUTING - Reason: ' + reason);
+            console.log('🟢 REJECTION CALLBACK STARTED - Reason:', reason, 'TaskID:', taskId);
             const note = `✕ Rejected — Reason: ${reason}`;
             const taskName = task?.name || 'Task';
             
