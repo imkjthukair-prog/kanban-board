@@ -293,14 +293,23 @@ async function rejectTask(taskId) {
         'Why are you rejecting this? Your feedback helps improve future suggestions.',
         true,
         async (reason) => {
-            console.log('Rejection callback executing with reason:', reason);
+            console.log('🔴 Rejection callback executing with reason:', reason);
+            console.log('🔍 Looking for task with ID:', taskId);
             const note = `✕ Rejected — Reason: ${reason}`;
             
             // Immediately remove from DOM for instant feedback
             const cardElement = document.querySelector(`[data-id="${taskId}"]`);
+            console.log('📍 Found card element:', cardElement);
+            console.log('📍 Card parent:', cardElement?.parentElement);
+            
             if (cardElement) {
+                console.log('⏸️ Setting opacity to 0.5');
                 cardElement.style.opacity = '0.5';
                 cardElement.style.pointerEvents = 'none';
+            } else {
+                console.error('❌ Card element NOT FOUND for ID:', taskId);
+                showToast('Error: Could not find card to remove', 'error');
+                return;
             }
             
             try {
@@ -319,13 +328,21 @@ async function rejectTask(taskId) {
                 
                 // Update local state immediately
                 const taskIndex = allTasks.findIndex(t => t.id === taskId);
+                console.log('📝 Task index in allTasks:', taskIndex);
                 if (taskIndex !== -1) {
+                    console.log('✏️ Updating task status to archived in local state');
                     allTasks[taskIndex].status = 'archived';
                 }
                 
                 // Remove card from DOM immediately
-                if (cardElement) {
+                console.log('🗑️ Attempting to remove card from DOM');
+                if (cardElement && cardElement.parentElement) {
+                    console.log('✅ Removing card now');
                     cardElement.remove();
+                    console.log('✅ Card removed successfully');
+                    console.log('🔍 Card still in DOM?', document.querySelector(`[data-id="${taskId}"]`));
+                } else {
+                    console.error('❌ Cannot remove - card or parent missing');
                 }
                 
                 updateEmptyStates();
@@ -343,8 +360,8 @@ async function rejectTask(taskId) {
                         await loadTasks();
                     }
                 );
-                
-                await loadTasks();
+
+                // Only refresh activity log, not tasks - UI already updated
                 await loadActivity();
                 console.log('Task rejected successfully, UI updated');
             } catch (error) {
