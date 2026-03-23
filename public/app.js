@@ -300,7 +300,7 @@ async function rejectTask(taskId) {
             
             try {
                 // Archive on server first
-                await fetch(`${API_URL}/tasks/${taskId}`, {
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -309,8 +309,20 @@ async function rejectTask(taskId) {
                     })
                 });
                 
-                // Reload fresh data from server instead of trusting local state
-                await loadTasks();
+                if (!response.ok) {
+                    throw new Error('Server rejected the update');
+                }
+                
+                // Wait a moment for Vercel KV to propagate
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Force reload from server with cache busting
+                const freshTasks = await fetch(`${API_URL}/tasks?t=${Date.now()}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                allTasks = await freshTasks.json();
+                renderTasks();
                 await loadActivity();
                 
                 showToast(
