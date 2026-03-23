@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+<div id="test-card" data-id="123">Test Card</div>
+<button onclick="testRemove()">Remove</button>
+<script>
+function testRemove() {
+    const taskId = "123";
+    console.log('Looking for:', taskId);
+    const card = document.querySelector(`[data-id="${taskId}"]`);
+    console.log('Found:', card);
+    if (card) {
+        card.remove();
+        console.log('After remove:', document.querySelector(`[data-id="${taskId}"]`));
+    }
+}
+</script>
+</body>
+</html>
