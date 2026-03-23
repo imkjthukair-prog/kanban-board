@@ -535,40 +535,65 @@ function showFeedbackModal(title, prompt, required = false, callback) {
     // Small delay to ensure modal is rendered
     setTimeout(() => textarea.focus(), 100);
     
-    // Remove old event listeners
+    // Remove old event listeners by cloning
     const newSubmitBtn = submitBtn.cloneNode(true);
     submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
     
+    // Re-set the ID to ensure it can be found again
+    newSubmitBtn.id = 'feedback-submit-btn';
+    
     newSubmitBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        console.log('Submit clicked!');
+        e.stopPropagation();
+        console.log('✅ Submit button clicked!');
+        console.log('Modal title:', title);
+        console.log('Callback exists:', !!feedbackCallback);
+        
         const feedback = textarea.value.trim();
-        console.log('Feedback:', feedback, 'Required:', required);
+        console.log('Feedback value:', feedback);
+        console.log('Required:', required);
         
         if (required && !feedback) {
+            console.warn('⚠️ Feedback required but empty');
             showToast('Feedback is required', 'error');
+            textarea.focus();
             return;
         }
+        
+        console.log('📤 Processing feedback...');
         
         // Capture callback BEFORE closing modal (closeFeedbackModal nulls it)
         const cb = feedbackCallback;
         closeFeedbackModal();
         
         if (cb) {
+            console.log('🔄 Executing callback with feedback:', feedback);
             try {
                 await cb(feedback);
+                console.log('✅ Callback executed successfully');
             } catch (error) {
-                console.error('Callback error:', error);
+                console.error('❌ Callback error:', error);
                 showToast('Error processing feedback', 'error');
             }
+        } else {
+            console.error('❌ No callback found!');
         }
     });
     
-    textarea.addEventListener('keydown', (e) => {
+    // Remove old textarea listeners
+    const newTextarea = textarea.cloneNode(true);
+    textarea.parentNode.replaceChild(newTextarea, textarea);
+    newTextarea.id = 'feedback-input';
+    
+    newTextarea.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.ctrlKey) {
+            console.log('⌨️ Ctrl+Enter pressed, triggering submit');
             newSubmitBtn.click();
         }
     });
+    
+    // Re-focus after DOM manipulation
+    setTimeout(() => newTextarea.focus(), 100);
 }
 
 function closeFeedbackModal() {
